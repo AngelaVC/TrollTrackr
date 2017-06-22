@@ -51,6 +51,9 @@ def input():
 def inputSearch():
     return render_template("inputSearch.html")
 
+def sentiment(sentence):
+    vs = analyzer.polarity_scores(sentence)
+    return vs
 
 @app.route('/output')
 def get_user_data():
@@ -102,54 +105,5 @@ def get_user_data():
 
 
 
-@app.route('/outputSearch')
-def get_search():
-    query = request.args.get('search')
-    max_tweets = 100
-    searched_tweets = []
-    last_id = -1
-    while len(searched_tweets) < max_tweets:
-        count = max_tweets - len(searched_tweets)
-        try:
-            new_tweets = api.search(q=query, count=count, max_id=str(last_id - 1))
-            if not new_tweets:
-                break
-            searched_tweets.extend(new_tweets)
-            last_id = new_tweets[-1].id
-        except tweepy.TweepError as e:
-            break
 
-    users = []
-    for tweet in searched_tweets:
-        users.append(tweet._json)
-
-
-    the_result=[]
-
-    for user in users:
-        screen_name = user.user.screen_name
-        try:
-            # get last 50 user tweets
-            twts = api.user_timeline(screen_name = screen_name, count = 50, include_rts = True, tweet_mode = "extended")
-            # text of each tweet
-            tweets = [[tweet.created_at.strftime('%m/%d/%Y'), tweet.full_text] for tweet in twts]
-            tweetsText = ''
-            for tweet in tweets:
-                tweetsText += ' ' + tweet[0]
-        except tweepy.TweepError as e:
-            the_result = "Sorry, not a valid user name."
-
-        vectorizer, forest = joblib.load('forest_model.pkl')
-
-        text = vectorizer.transform([tweetsText])
-
-        predicted = forest.predict(text)
-        probs = forest.predict_proba(text)
-
-        the_result = the_result.append([screen_name,predicted[0],probs[0]])
-
-
-    the_result = users
-
-    return render_template("outputSearch.html", the_result = users )
 
