@@ -32,20 +32,20 @@
                     <span class="sr-only">Toggle navigation</span>
                     Menu <i class="fa fa-bars"></i>
                 </button>
-                <a class="navbar-brand" href="/slides">TrollTrackr</a>
+                <a class="navbar-brand" href="/">TrollTrackr</a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav navbar-right">
                     <li>
-                        <a href="/index">Home</a>
+                        <a href="/">Home</a>
                     </li>
                     <li>
                         <a href="/slides">Slides</a>
                     </li>
                     <li>
-                        <a href="/contact">Contact</a>
+                        <a href="/about_me.html">About Me</a>
                     </li>
                 </ul>
             </div>
@@ -78,7 +78,7 @@
           <input type="text" id="screen_name" name='screen_name' placeholder="e.g. InsightDataSci">
         </div>
         <div>
-          <button type="submit" class="btn btn-default btn-lg">Find the user!</button>
+          <button type="submit" class="btn btn-default btn-lg">Troll or Not?</button>
         </div>
       </form>
     </div>
@@ -90,14 +90,14 @@
     <div class="container">
       <div class="starter-template">
         <h3>Result:</h3>
-        <p class="lead">{{the_result}}</p>
+        <p class="lead">{{the_result | safe}}</p>
         <br>
         <h3>Recent Tweets:</h3>
         <p class = "lead">
             <table class="table table-hover">
                 {% for row in recent_tweets %}
                     <tr>
-                      <td>{{ row[0]|tojson|safe }}</td>
+                      <td>{{ row[0] }}</td>
                       <td>{{ row[1] }}</td>
                     </tr>
                 {% endfor %}

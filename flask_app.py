@@ -10,6 +10,9 @@ import ast
 import re
 import os
 
+analyzer = SentimentIntensityAnalyzer()
+
+
 # create the application object
 app = Flask(__name__)
 basepath = os.path.abspath(".")
@@ -37,7 +40,7 @@ api = tweepy.API(auth)
 # use decorators to link the function to a url
 @app.route("/", methods=["GET", "POST"])
 def index():
-    return render_template("index.html")
+    return render_template("input.html")
 
 @app.route('/slides')
 def slides():
@@ -47,9 +50,10 @@ def slides():
 def input():
     return render_template("input.html")
 
-@app.route('/inputSearch')
-def inputSearch():
-    return render_template("inputSearch.html")
+@app.route('/home')
+def home():
+    return render_template("input.html")
+
 
 def sentiment(sentence):
     vs = analyzer.polarity_scores(sentence)
@@ -61,16 +65,17 @@ def get_user_data():
     screen_name = request.args.get('screen_name')
     try:
         # get last 200 user tweets
-        twts = api.user_timeline(screen_name = screen_name, count = 200, include_rts = True, tweet_mode = "extended")  
+        twts = api.user_timeline(screen_name = screen_name, count = 200, include_rts = True, tweet_mode = "extended")
 
-    
-        
+
+
         # this is for taking all tweets, with and without mentions
         tweetsMentions = []
         tweetsNM = []
-        for tweet in twts: 
+        for tweet in twts:
             # pull date off before getting _json
-            created_at = tweet.created_at.strftime('%m/%d/%Y') 
+            created_at = tweet.created_at.strftime('%m/%d/%Y')
+
             tweet = tweet._json #First convert tweets from string to json object.
 
             # collect my mentions & process
@@ -89,11 +94,10 @@ def get_user_data():
             for tweet in tweetsNM:
                 NMtweetsText += ' ' + tweet[1] + ' '
 
-        vectorizer, forest = joblib.load(basepath + '/trolltrackrapp/model/LR_model.pkl)
+        vectorizer, forest = joblib.load(basepath + '/trolltrackrapp/model/LR_model.pkl')
         text = vectorizer.transform([NMtweetsText])
 
         predicted = forest.predict(text)
-        probs = forest.predict_proba(text)
 
         # look for you forms
         youForms = ['you','your','yours','yourself','yourselves']
@@ -106,19 +110,24 @@ def get_user_data():
 
         # together they give possible trolling
         possibleTrolling = mentionTweets[(mentionTweets['contains_you']==1)&(mentionTweets['compound']<0)]
+        tweetsTrolling = possibleTrolling[['date','tweet']].values.tolist()
+        if predicted[0]==1:
+            if len(tweetsTrolling)==0:
+                the_result = "{x} IS at risk for engaging in trolling, but has not trolled recently. Risk assessment based on tweets below. <a href=\"http://twitter.com/{x}\">Click here</a> to view @{x} on twitter and from there you can block or mute @{x}".format(x=screen_name)
+                recent_tweets = tweetsNM
+            else:
+                the_result = "{x} IS at risk for engaging in trolling. Tweets that may be trolling are listed below.  <a href=\"http://twitter.com/{x}\">Click here</a> to view @{x} on twitter and block, mute, or report @{x}".format(x=screen_name)
+                recent_tweets = tweetsTrolling
 
-        if predicted[0]==1: 
-            the_result = "{x} IS at risk for engaging in trolling. Any recent trolling activity is listed below.".format(x=screen_name)
-            recent_tweets = possibleTrolling
         else:
             the_result = "{x} is NOT at risk for engaging in trolling. Result based on recent tweets below.".format(x=screen_name)
-            recent_tweets = tweetsNM 
+            recent_tweets = tweetsNM
 
     except tweepy.TweepError as e:
-        the_result = "Sorry, not a valid user name."
+        return render_template("output.html", the_result = "Sorry, not a valid user or user has no tweets.", recent_tweets = [['','']])
 
     the_result = the_result
-    recent_tweets = tweets
+    recent_tweets = recent_tweets
     return render_template("output.html", the_result = the_result , recent_tweets = recent_tweets)
 
 
