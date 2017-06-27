@@ -3,3 +3,6 @@ __pycache__/
 twarc.log
 Archive.zip
 .DS_Store
+config.py
+/static/.DS_Store
+/templates/.DS_Store
