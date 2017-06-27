@@ -6,4 +6,4 @@ Archive.zip
 config.py
 /static/.DS_Store
 /templates/.DS_Store
-.ipynb_checkpoints/*
+.ipynb_checkpoints/
