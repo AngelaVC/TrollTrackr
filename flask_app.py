@@ -78,8 +78,8 @@ def get_user_data():
     # this is what the user entered
     screen_name = request.args.get('screen_name')
     try:
-        # get last 200 user tweets
-        twts = api.user_timeline(screen_name = screen_name, count = 200, include_rts = True, tweet_mode = "extended")
+        # get last 100 user tweets
+        twts = api.user_timeline(screen_name = screen_name, count = 100, include_rts = True, tweet_mode = "extended")
 
         # this is for taking all tweets, with and without mentions
         tweets_mentions = []
